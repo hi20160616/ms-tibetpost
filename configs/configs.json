@@ -1,0 +1,16 @@
+{
+  "dbpath":"db",
+  "microservice":{
+    "title":"tibetpost",
+    "domain":"www.tibetpost.net",
+    "url":[
+      "http://www.tibetpost.net/",
+      "http://www.tibetpost.net/news",
+      "http://www.tibetpost.net/features",
+      "http://www.tibetpost.net/op-ed"
+    ],
+    "addr":":20018",
+    "timeout":"1s",
+    "heartbeat":"5m"
+  }
+}
