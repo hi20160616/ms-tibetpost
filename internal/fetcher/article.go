@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"log"
 	"net/url"
-	"os"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/hi20160616/exhtml"
 	"github.com/hi20160616/gears"
 	"github.com/hi20160616/ms-tibetpost/configs"
+	"github.com/hycka/gocc"
 	"github.com/pkg/errors"
 	"golang.org/x/net/html"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -110,6 +109,17 @@ var timeout = func() time.Duration {
 
 // fetchArticle fetch article by rawurl
 func (a *Article) fetchArticle(rawurl string) (*Article, error) {
+	translate := func(x string, err error) (string, error) {
+		if err != nil {
+			return "", err
+		}
+		tw2s, err := gocc.New("tw2s")
+		if err != nil {
+			return "", err
+		}
+		return tw2s.Convert(x)
+	}
+
 	var err error
 	a.U, err = url.Parse(rawurl)
 	if err != nil {
@@ -149,7 +159,7 @@ func (a *Article) fetchArticle(rawurl string) (*Article, error) {
 		return nil, err
 	}
 
-	a.Content, err = a.fmtContent(a.Content)
+	a.Content, err = translate(a.fmtContent(a.Content))
 	if err != nil {
 		return nil, err
 	}
@@ -164,7 +174,7 @@ func (a *Article) fetchTitle() (string, error) {
 			configs.Data.MS.Title)
 	}
 	title := n[0].FirstChild.Data
-	rp := strings.NewReplacer(" | 联合早报网", "", " | 早报", "")
+	rp := strings.NewReplacer(" - 國際西藏郵報", "")
 	title = strings.TrimSpace(rp.Replace(title))
 	gears.ReplaceIllegalChar(&title)
 	return title, nil
@@ -176,23 +186,18 @@ func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
 			configs.Data.MS.Title, a.U.String())
 	}
 
-	re := regexp.MustCompile(`"datePublished": "(.*?)",`)
-	rs := re.FindAllSubmatch(a.raw, -1)
-	if rs == nil || len(rs) <= 0 {
-		// Just print matched nil to Stderr, instead of return the err
-		// so, the news will fetch although datetime err
-		fmt.Fprintf(os.Stderr, "[%s] fetchUpdateTime: no datePublished matched: %s",
-			configs.Data.MS.Title, a.U.String())
-		return timestamppb.Now(), nil
+	n := exhtml.MetasByProperty(a.doc, "article:published_time")
+
+	t := time.Now() // if no time fetched, return current time
+	var err error
+	if len(n) > 0 && len(n[0].Attr) > 1 {
+		t, err = time.Parse("2006-01-02 15:04:05", n[0].Attr[1].Val)
+		if err != nil {
+			return nil, errors.WithMessage(err, "no matched meta contains published_time")
+		}
 	}
-	if len(rs[0]) <= 1 {
-		fmt.Fprintf(os.Stderr, "[%s] fetchUpdateTime: no datePublished sub-matched: %s",
-			configs.Data.MS.Title, a.U.String())
-		return timestamppb.Now(), nil
-	}
-	t, err := time.Parse(time.RFC3339, string(rs[0][1]))
-	if t.Before(time.Now().AddDate(0, 0, -3)) {
-		return nil, ErrTimeOverDays
+	if t.Before(time.Now().AddDate(0, 0, -50)) {
+		return timestamppb.New(t), ErrTimeOverDays
 	}
 	return timestamppb.New(t), err
 }
@@ -207,34 +212,32 @@ func (a *Article) fetchContent() (string, error) {
 		return "", errors.Errorf("[%s] fetchContent: doc is nil: %s", configs.Data.MS.Title, a.U.String())
 	}
 	body := ""
-	// Fetch content nodes
-	nodes := exhtml.ElementsByTagAndId(a.doc, "article", "article-body")
-	if len(nodes) == 0 {
-		nodes = exhtml.ElementsByTagAndClass(a.doc, "div", "article-content-rawhtml")
+	bodyN := exhtml.ElementsByTagAndClass(a.doc, "div", "article-content-main")
+	if len(bodyN) == 0 {
+		return body, errors.Errorf("no article content matched: %s", a.U.String())
 	}
-	if len(nodes) == 0 {
-		nodes = exhtml.ElementsByTagAndClass(a.doc, "div", "article-content-container")
+	// Fetch quote
+	n := exhtml.ElementsByTagAndClass(bodyN[0], "blockquote", "article-intro")
+	if len(n) != 0 {
+		gears.ReplaceIllegalChar(&n[0].FirstChild.NextSibling.FirstChild.Data)
+		body += "> " + n[0].FirstChild.NextSibling.FirstChild.Data
 	}
-	if len(nodes) == 0 {
-		return "", errors.Errorf("[%s] no content extract from %s", configs.Data.MS.Title, a.U.String())
-	}
-	plist := exhtml.ElementsByTag(nodes[0], "p")
+	// Fetch content
+	n = exhtml.ElementsByTagAndClass(bodyN[0], "section", "article-content")
+	plist := exhtml.ElementsByTag(n[0], "p")
 	for _, v := range plist {
 		if v.FirstChild == nil {
 			continue
-		} else if v.FirstChild.FirstChild != nil &&
-			v.FirstChild.Data == "strong" {
-			a := exhtml.ElementsByTag(v, "span")
-			for _, aa := range a {
-				body += aa.FirstChild.Data
+		}
+		if v.FirstChild.FirstChild != nil {
+			if v.FirstChild.Data == "strong" {
+				body += "**" + v.FirstChild.FirstChild.Data + "**"
 			}
 			body += "  \n"
 		} else {
 			body += v.FirstChild.Data + "  \n"
 		}
 	}
-	body = strings.ReplaceAll(body, "span  \n", "")
-
 	return body, nil
 }
 

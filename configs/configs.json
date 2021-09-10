@@ -7,7 +7,10 @@
       "http://www.tibetpost.net/",
       "http://www.tibetpost.net/news",
       "http://www.tibetpost.net/features",
-      "http://www.tibetpost.net/op-ed"
+      "http://www.tibetpost.net/op-ed",
+      "http://www.tibetpost.net/ecosystem",
+      "http://www.tibetpost.net/influence-impact",
+      "http://www.tibetpost.net/tibet-facts"
     ],
     "addr":":20018",
     "timeout":"1s",

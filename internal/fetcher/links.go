@@ -22,11 +22,28 @@ func fetchLinks() ([]string, error) {
 		}
 		rt = append(rt, links...)
 	}
-	newsWorld := linksFilter(rt, `.*?/news/world/.*`)
-	newsChina := linksFilter(rt, `.*?/news/china/.*`)
-	realtimeWorld := linksFilter(rt, `.*?/realtime/world/.*`)
-	realtimeChina := linksFilter(rt, `.*?/realtime/china/.*`)
-	rt = append(append(append(newsWorld, newsChina...), realtimeWorld...), realtimeChina...)
+	home := linksFilter(rt, `.*?/\d*-.*`)
+	news := linksFilter(rt, `.*?/news/.*?/\d*-.*`)
+	features := linksFilter(rt, `.*?/features/.*?/\d*-.*`)
+	op_ed := linksFilter(rt, `.*?/op-ed/(.*?/)?\d*-.*`)
+	ecosystem := linksFilter(rt, `.*?/ecosystem/(.*?/)?\d*-.*`)
+	influence_impact := linksFilter(rt, `.*?/influence-impact/(.*?/)?\d*-.*`)
+	tibet_facts := linksFilter(rt, `.*?/tibet-facts/(.*?/)?\d*-.*`)
+	// rt = append(rt, home...)
+	// rt = append(rt, news...)
+	// rt = append(rt, features...)
+	// rt = append(rt, op_ed...)
+	// rt = append(rt, ecosystem...)
+	// rt = append(rt, influence_impact...)
+	// rt = append(rt, tibet_facts...)
+	rt = append(append(append(append(append(append(append(rt,
+		home...),
+		news...),
+		features...),
+		op_ed...),
+		ecosystem...),
+		influence_impact...),
+		tibet_facts...)
 	return rt, nil
 }
 
