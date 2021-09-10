@@ -6,7 +6,7 @@ require (
 	github.com/adamzy/cedar-go v0.0.0-20170805034717-80a9c64b256d // indirect
 	github.com/hi20160616/exhtml v0.0.0-20210701125727-0167e2b85077
 	github.com/hi20160616/fetchnews-api v0.0.0-20210527092959-c7f6971039c7
-	github.com/hi20160616/gears v0.0.0-20210910043732-e88fbac2f6f7
+	github.com/hi20160616/gears v0.0.0-20210910045433-bd070ebed71e
 	github.com/hycka/gocc v0.0.0-20210322081417-5d0705989987
 	github.com/liuzl/cedar-go v0.0.0-20170805034717-80a9c64b256d // indirect
 	github.com/liuzl/da v0.0.0-20180704015230-14771aad5b1d // indirect

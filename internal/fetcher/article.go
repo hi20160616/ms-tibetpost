@@ -176,8 +176,7 @@ func (a *Article) fetchTitle() (string, error) {
 	title := n[0].FirstChild.Data
 	rp := strings.NewReplacer(" - 國際西藏郵報", "")
 	title = strings.TrimSpace(rp.Replace(title))
-	gears.ReplaceIllegalChar(&title)
-	return title, nil
+	return gears.ChangeIllegalChar(title), nil
 }
 
 func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
@@ -219,8 +218,9 @@ func (a *Article) fetchContent() (string, error) {
 	// Fetch quote
 	n := exhtml.ElementsByTagAndClass(bodyN[0], "blockquote", "article-intro")
 	if len(n) != 0 {
-		gears.ReplaceIllegalChar(&n[0].FirstChild.NextSibling.FirstChild.Data)
-		body += "> " + n[0].FirstChild.NextSibling.FirstChild.Data
+
+		body += "> " + gears.ChangeIllegalChar(
+			n[0].FirstChild.NextSibling.FirstChild.Data)
 	}
 	// Fetch content
 	n = exhtml.ElementsByTagAndClass(bodyN[0], "section", "article-content")
@@ -235,7 +235,7 @@ func (a *Article) fetchContent() (string, error) {
 			}
 			body += "  \n"
 		} else {
-			body += v.FirstChild.Data + "  \n"
+			body += gears.ChangeIllegalChar(v.FirstChild.Data) + "  \n"
 		}
 	}
 	return body, nil
