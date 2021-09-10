@@ -195,7 +195,7 @@ func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
 			return nil, errors.WithMessage(err, "no matched meta contains published_time")
 		}
 	}
-	if t.Before(time.Now().AddDate(0, 0, -50)) {
+	if t.Before(time.Now().AddDate(0, 0, -3)) {
 		return timestamppb.New(t), ErrTimeOverDays
 	}
 	return timestamppb.New(t), err

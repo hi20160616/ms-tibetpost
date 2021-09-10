@@ -29,21 +29,30 @@ func fetchLinks() ([]string, error) {
 	ecosystem := linksFilter(rt, `.*?/ecosystem/(.*?/)?\d*-.*`)
 	influence_impact := linksFilter(rt, `.*?/influence-impact/(.*?/)?\d*-.*`)
 	tibet_facts := linksFilter(rt, `.*?/tibet-facts/(.*?/)?\d*-.*`)
-	// rt = append(rt, home...)
-	// rt = append(rt, news...)
-	// rt = append(rt, features...)
-	// rt = append(rt, op_ed...)
-	// rt = append(rt, ecosystem...)
-	// rt = append(rt, influence_impact...)
-	// rt = append(rt, tibet_facts...)
-	rt = append(append(append(append(append(append(append(rt,
-		home...),
-		news...),
-		features...),
-		op_ed...),
-		ecosystem...),
-		influence_impact...),
-		tibet_facts...)
+	rt = []string{}
+	rt = append(rt, home...)
+	rt = append(rt, news...)
+	rt = append(rt, features...)
+	rt = append(rt, op_ed...)
+	rt = append(rt, ecosystem...)
+	rt = append(rt, influence_impact...)
+	rt = append(rt, tibet_facts...)
+	rt = gears.StrSliceDeDupl(rt)
+	blackList := []string{
+		`.*?/92-health-safety`,
+		`.*?/84-letters-to-editor`,
+		`.*?/93-glaciers-ice-caps`,
+		`.*?/94-ocean-climate`, // TODO: this is a category
+		`.*?/95-green-clean`,
+		`.*?/97-buddhist-science`,
+		`.*?/98-religious`,
+		`.*?/99-spiritual-life`,
+		`.*?/100-mind-brain`,
+		`.*?/101-medicines-and-healthcare`,
+	}
+	for _, e := range blackList {
+		rt = kickOut(rt, e)
+	}
 	return rt, nil
 }
 
@@ -93,11 +102,16 @@ func kickOutLinksMatchPath(links []string, path string) []string {
 }
 
 // TODO: use point to impletement linksFilter
-// linksFilter is support for SetLinks method
+// linksFilter return all matched string list
 func linksFilter(links []string, regex string) []string {
 	flinks := []string{}
 	re := regexp.MustCompile(regex)
 	s := strings.Join(links, "\n")
 	flinks = re.FindAllString(s, -1)
 	return flinks
+}
+
+func kickOut(links []string, regex string) []string {
+	blackList := linksFilter(links, regex)
+	return gears.StrSliceDiff(links, blackList)
 }

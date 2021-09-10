@@ -24,4 +24,5 @@ func TestFetchLinks(t *testing.T) {
 	for _, link := range links {
 		fmt.Println(link)
 	}
+	fmt.Println(len(links))
 }

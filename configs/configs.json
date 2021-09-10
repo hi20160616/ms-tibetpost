@@ -14,6 +14,6 @@
     ],
     "addr":":20018",
     "timeout":"1s",
-    "heartbeat":"5m"
+    "heartbeat":"12h"
   }
 }
