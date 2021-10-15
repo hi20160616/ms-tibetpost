@@ -34,9 +34,9 @@ var ErrTimeOverDays error = errors.New("article update time out of range")
 
 func NewArticle() *Article {
 	return &Article{
-		WebsiteDomain: configs.Data.MS.Domain,
-		WebsiteTitle:  configs.Data.MS.Title,
-		WebsiteId:     fmt.Sprintf("%x", md5.Sum([]byte(configs.Data.MS.Domain))),
+		WebsiteDomain: configs.Data.MS["tibetpost"].Domain,
+		WebsiteTitle:  configs.Data.MS["tibetpost"].Title,
+		WebsiteId:     fmt.Sprintf("%x", md5.Sum([]byte(configs.Data.MS["tibetpost"].Domain))),
 	}
 }
 
@@ -57,8 +57,8 @@ func (a *Article) Get(id string) (*Article, error) {
 			return a, nil
 		}
 	}
-	return nil, fmt.Errorf("[%s] no article with id: %s, url: %s",
-		configs.Data.MS.Title, id, a.U.String())
+	return nil, fmt.Errorf("[%s] no article with id: %s",
+		configs.Data.MS["tibetpost"].Title, id)
 }
 
 func (a *Article) Search(keyword ...string) ([]*Article, error) {
@@ -99,9 +99,9 @@ func (u ByUpdateTime) Less(i, j int) bool {
 }
 
 var timeout = func() time.Duration {
-	t, err := time.ParseDuration(configs.Data.MS.Timeout)
+	t, err := time.ParseDuration(configs.Data.MS["tibetpost"].Timeout)
 	if err != nil {
-		log.Printf("[%s] timeout init error: %v", configs.Data.MS.Title, err)
+		log.Printf("[%s] timeout init error: %v", configs.Data.MS["tibetpost"].Title, err)
 		return time.Duration(1 * time.Minute)
 	}
 	return t
@@ -169,9 +169,9 @@ func (a *Article) fetchArticle(rawurl string) (*Article, error) {
 
 func (a *Article) fetchTitle() (string, error) {
 	n := exhtml.ElementsByTag(a.doc, "title")
-	if n == nil {
-		return "", fmt.Errorf("[%s] getTitle error, there is no element <title>",
-			configs.Data.MS.Title)
+	if n == nil || len(n) == 0 {
+		return "", fmt.Errorf("[%s] there is no element <title>: %s",
+			configs.Data.MS["tibetpost"].Title, a.U.String())
 	}
 	title := n[0].FirstChild.Data
 	rp := strings.NewReplacer(" - 國際西藏郵報", "")
@@ -182,7 +182,7 @@ func (a *Article) fetchTitle() (string, error) {
 func (a *Article) fetchUpdateTime() (*timestamppb.Timestamp, error) {
 	if a.raw == nil {
 		return nil, errors.Errorf("[%s] fetchUpdateTime: raw is nil: %s",
-			configs.Data.MS.Title, a.U.String())
+			configs.Data.MS["tibetpost"].Title, a.U.String())
 	}
 
 	n := exhtml.MetasByProperty(a.doc, "article:published_time")
@@ -208,7 +208,7 @@ func shanghai(t time.Time) time.Time {
 
 func (a *Article) fetchContent() (string, error) {
 	if a.doc == nil {
-		return "", errors.Errorf("[%s] fetchContent: doc is nil: %s", configs.Data.MS.Title, a.U.String())
+		return "", errors.Errorf("[%s] fetchContent: doc is nil: %s", configs.Data.MS["tibetpost"].Title, a.U.String())
 	}
 	body := ""
 	bodyN := exhtml.ElementsByTagAndClass(a.doc, "div", "article-content-main")

@@ -1,19 +1,6 @@
 {
-  "dbpath":"db",
-  "microservice":{
-    "title":"tibetpost",
-    "domain":"www.tibetpost.net",
-    "url":[
-      "http://www.tibetpost.net/",
-      "http://www.tibetpost.net/news",
-      "http://www.tibetpost.net/features",
-      "http://www.tibetpost.net/op-ed",
-      "http://www.tibetpost.net/ecosystem",
-      "http://www.tibetpost.net/influence-impact",
-      "http://www.tibetpost.net/tibet-facts"
-    ],
-    "addr":":20018",
-    "timeout":"1s",
-    "heartbeat":"12h"
-  }
+  "debug":false,
+  "verbose":false,
+  "gist": "https://gist.github.com/hi20160616/bfcb9f8521d17aa4f65cf14b79550e23/raw/configs1.json",
+  "dbpath":"db"
 }
